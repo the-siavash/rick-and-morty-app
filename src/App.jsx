@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import axios from 'axios';
+import { Toaster } from 'react-hot-toast';
 import Navbar, { Favorites, Search, SearchResult } from './components/Navbar';
 import CharacterList from './components/CharacterList';
 import CharacterDetails from './components/CharacterDetails';
 import Loader from './components/Loader';
+import useCharacters from './hooks/useCharacters';
 
 function App() {
-  const [characters, setCharacters] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { isLoading, characters } = useCharacters(searchQuery);
+  const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [favorites, setFavorites] = useState(() => {
     return JSON.parse(localStorage.getItem('favorites')) || [];
   });
@@ -18,39 +17,6 @@ function App() {
   const isAddedToFavorites = favorites
     .map((item) => item.id)
     .includes(selectedCharacter);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    async function fetchData() {
-      setIsLoading(true);
-      try {
-        const { data } = await axios.get(
-          `https://rickandmortyapi.com/api/character/?name=${searchQuery
-            .trim()
-            .toLowerCase()}`,
-          { signal }
-        );
-        setCharacters(data.results);
-      } catch (err) {
-        setCharacters([]);
-        if (!axios.isCancel())
-          toast.error(
-            err.response
-              ? `${err.response.data.error} (${err.response.status})`
-              : err.message
-          );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-
-    return () => {
-      controller.abort();
-    };
-  }, [searchQuery]);
 
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
@@ -78,7 +44,7 @@ function App() {
 
   return (
     <div className="container">
-      <Toaster />
+      <Toaster position="bottom-right" reverseOrder={true} />
       <Navbar>
         <Search
           query={searchQuery}
