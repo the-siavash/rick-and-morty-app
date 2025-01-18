@@ -5,22 +5,17 @@ import CharacterList from './components/CharacterList';
 import CharacterDetails from './components/CharacterDetails';
 import Loader from './components/Loader';
 import useCharacters from './hooks/useCharacters';
+import useLocalStorage from './hooks/useLocalStorage';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isLoading, characters } = useCharacters(searchQuery);
   const [selectedCharacter, setSelectedCharacter] = useState(null);
-  const [favorites, setFavorites] = useState(() => {
-    return JSON.parse(localStorage.getItem('favorites')) || [];
-  });
+  const [favorites, setFavorites] = useLocalStorage('favorites', []);
 
   const isAddedToFavorites = favorites
     .map((item) => item.id)
     .includes(selectedCharacter);
-
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
 
   function handleSelectedCharacter(id) {
     setSelectedCharacter((prevId) => (prevId === id ? null : id));
